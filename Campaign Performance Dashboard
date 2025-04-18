@@ -1,0 +1,70 @@
+USE WAREHOUSE ECOMMERCE_WH;
+USE DATABASE ECOMMERCE_DB;
+USE SCHEMA SALES_DATA;
+
+Step 1: Create Tables:
+
+# Campaign Data Table and Engagement Data Table
+
+CREATE OR REPLACE TABLE campaign_data (
+    campaign_id STRING,
+    campaign_name STRING,
+    launch_date DATE,
+    channel STRING,
+    budget FLOAT
+);
+
+
+
+
+CREATE OR REPLACE TABLE engagement_data (
+    user_id STRING,
+    campaign_id STRING,
+    open_date DATE,
+    click_date DATE,
+    conversion_date DATE,
+    country STRING
+);
+
+Step 2: Load  Data into tables::
+
+INSERT INTO campaign_data VALUES
+('CAMP001', 'Summer Sale', '2024-06-01', 'Email', 10000),
+('CAMP002', 'Winter Sale', '2024-12-01', 'Email', 15000);
+
+
+
+INSERT INTO engagement_data VALUES
+('USR101', 'CAMP001', '2024-06-01', '2024-06-01', '2024-06-02', 'USA'),
+('USR102', 'CAMP001', '2024-06-01', NULL, NULL, 'India'),
+('USR103', 'CAMP001', '2024-06-02', '2024-06-02', NULL, 'USA'),
+('USR201', 'CAMP002', '2024-12-01', '2024-12-01', '2024-12-03', 'UK');
+
+
+
+Step 3: Create a View for Dashboard Reporting::
+
+
+CREATE OR REPLACE VIEW campaign_performance_view AS
+SELECT
+    c.campaign_name,
+    c.launch_date,
+    c.channel,
+    COUNT(DISTINCT e.user_id) AS total_users,
+    COUNT(DISTINCT e.open_date) AS open_count,
+    COUNT(DISTINCT e.click_date) AS click_count,
+    COUNT(DISTINCT e.conversion_date) AS conversion_count,
+    COUNT(DISTINCT e.conversion_date) * 100.0 / COUNT(DISTINCT e.open_date) AS conversion_rate_percent
+FROM
+    campaign_data c
+LEFT JOIN
+    engagement_data e
+ON
+    c.campaign_id = e.campaign_id
+GROUP BY
+    c.campaign_name, c.launch_date, c.channel;
+
+
+Step 4: Query the View for Insights::
+
+SELECT * FROM campaign_performance_view ORDER BY launch_date;
